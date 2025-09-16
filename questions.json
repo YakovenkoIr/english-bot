@@ -1,0 +1,26 @@
+{
+  "A1": [
+    {
+      "question": "She ___ to school every day.",
+      "options": ["go", "goes", "going"],
+      "answer": "goes"
+    },
+    {
+      "question": "I usually drink a cup of ___ in the morning.",
+      "options": ["tea", "bread", "water"],
+      "answer": "tea"
+    }
+  ],
+  "A2": [
+    {
+      "question": "They ___ in London last year.",
+      "options": ["live", "lived", "living"],
+      "answer": "lived"
+    },
+    {
+      "question": "Choose a synonym for 'happy':",
+      "options": ["sad", "angry", "glad"],
+      "answer": "glad"
+    }
+  ]
+}
