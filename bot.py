@@ -32,13 +32,13 @@ async def chat_ai(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_text = update.message.text
 
     try:
-        resp = client.chat.completions.create(
-            model="llama-3.1-8b-instant",  # можна змінити на іншу модель
-            messages=[
-                {"role": "system", "content": "Ти викладач англійської. Відповідай коротко і просто."},
-                {"role": "user", "content": user_text}
-            ]
-        )
+        response = client.chat.completions.create(
+    model="llama3-8b-8192",  # або інша модель, яку ти обрала
+    messages=[
+        {"role": "system", "content": "You are an English teacher. Always answer in English, briefly and simply."},
+        {"role": "user", "content": user_text}
+    ]
+)
         answer = resp.choices[0].message.content
         await update.message.reply_text(answer)
     except Exception as e:
@@ -58,5 +58,6 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
