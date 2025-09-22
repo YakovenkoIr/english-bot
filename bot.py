@@ -33,7 +33,7 @@ async def chat_ai(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     try:
         resp = client.chat.completions.create(
-            model="llama3-8b-8192",  # можна змінити на іншу модель
+            model="llama-3.1-8b-instant",  # можна змінити на іншу модель
             messages=[
                 {"role": "system", "content": "Ти викладач англійської. Відповідай коротко і просто."},
                 {"role": "user", "content": user_text}
@@ -58,4 +58,5 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
