@@ -1,57 +1,60 @@
 {
   "A1": [
     {
-      "question": "What color is the sky on a clear day?",
-      "options": ["Blue", "Dog", "Table"],
-      "answer": "Blue"
+      "question": "What is the capital of the UK?",
+      "options": ["London", "Paris", "Berlin", "Madrid"],
+      "correct": 0
     },
     {
-      "question": "Choose the correct sentence:",
-      "options": ["She is happy.", "She are happy.", "She am happy."],
-      "answer": "She is happy."
-    },
+      "question": "Choose the correct article: ___ apple",
+      "options": ["a", "an", "the", "no article"],
+      "correct": 1
+    }
+  ],
+  "A2": [
     {
-      "question": "What is 2 + 2?",
-      "options": ["3", "4", "5"],
-      "answer": "4"
+      "question": "Which sentence is correct?",
+      "options": ["She go to school", "She goes to school", "She going school", "She goed to school"],
+      "correct": 1
+    }
+  ],
+  "B1": [
+    {
+      "question": "Complete: If I ___ more time, I would learn Spanish.",
+      "options": ["have", "had", "will have", "has"],
+      "correct": 1
     }
   ],
   "B2": [
     {
-      "question": "Which sentence uses the correct tense?",
-      "options": ["I have seen that movie yesterday.", "I saw that movie yesterday.", "I seen that movie yesterday."],
-      "answer": "I saw that movie yesterday."
-    },
-    {
-      "question": "Choose the correct word: He is interested ___ science.",
-      "options": ["on", "in", "at"],
-      "answer": "in"
-    },
-    {
-      "question": "Which is a synonym for 'big'?",
-      "options": ["Huge", "Small", "Tiny"],
-      "answer": "Huge"
+      "question": "Choose the synonym of 'angry'.",
+      "options": ["furious", "happy", "calm", "excited"],
+      "correct": 0
     }
   ],
   "C1": [
     {
-      "question": "Which sentence is grammatically correct?",
+      "question": "Select the correct usage of 'despite'.",
       "options": [
-        "Had I known about the traffic, I would have left earlier.",
-        "If I would have known about the traffic, I would leave earlier.",
-        "If I knew about the traffic, I would had left earlier."
+        "Despite of the rain, we went out.",
+        "Despite the rain, we went out.",
+        "We went out despite it was raining.",
+        "Despite it rains, we went out."
       ],
-      "answer": "Had I known about the traffic, I would have left earlier."
-    },
+      "correct": 1
+    }
+  ],
+  "C2": [
     {
-      "question": "Choose the correct word: The professor’s lecture was so ___ that many students fell asleep.",
-      "options": ["boring", "bored", "bore"],
-      "answer": "boring"
-    },
-    {
-      "question": "Which word means 'to make something less severe'?",
-      "options": ["Aggravate", "Alleviate", "Exacerbate"],
-      "answer": "Alleviate"
+      "question": "Which is the most formal expression?",
+      "options": [
+        "Can you help me out?",
+        "Would you mind assisting me?",
+        "Give me a hand.",
+        "Lend me your help."
+      ],
+      "correct": 1
     }
   ]
 }
+
