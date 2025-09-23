@@ -19,33 +19,29 @@ GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 
 client = Groq(api_key=GROQ_API_KEY)
 
-# Завантажуємо питання з JSON
+# Завантажуємо питання
 with open("questions.json", "r", encoding="utf-8") as f:
     QUESTIONS = json.load(f)
 
-# Словник для збереження стану користувача
+# Стан користувачів
 user_state = {}
 
-# Команда старт
+# /start
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    keyboard = [
-        [InlineKeyboardButton("📝 Test your English", callback_data="test")],
-        [InlineKeyboardButton("💬 Chat with AI", callback_data="chat")]
-    ]
+    keyboard = [[InlineKeyboardButton("📝 Пройти тест англійської", callback_data="test")]]
     reply_markup = InlineKeyboardMarkup(keyboard)
-    await update.message.reply_text("Hello! Choose an option:", reply_markup=reply_markup)
+    await update.message.reply_text("Привіт! Спочатку перевіримо твій рівень англійської:", reply_markup=reply_markup)
 
-# Обробка натискання кнопок
+# Натискання кнопок
 async def button(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
 
     if query.data == "test":
-        # Вибір рівня
         levels = ["A1", "A2", "B1", "B2", "C1", "C2"]
         keyboard = [[InlineKeyboardButton(level, callback_data=f"level_{level}")] for level in levels]
         reply_markup = InlineKeyboardMarkup(keyboard)
-        await query.edit_message_text("Select your English level:", reply_markup=reply_markup)
+        await query.edit_message_text("Оберіть рівень тесту:", reply_markup=reply_markup)
 
     elif query.data.startswith("level_"):
         level = query.data.split("_")[1]
@@ -54,9 +50,9 @@ async def button(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     elif query.data == "chat":
         user_state[query.from_user.id] = {"mode": "chat"}
-        await query.edit_message_text("You can now chat in English with AI 🇬🇧. Just type your message!")
+        await query.edit_message_text("Тепер спілкуйся англійською з AI 🇬🇧. Напиши будь-яке повідомлення!")
 
-# Відправка питання
+# Надсилання питання
 async def send_question(query, context):
     user_id = query.from_user.id
     state = user_state[user_id]
@@ -69,14 +65,17 @@ async def send_question(query, context):
         reply_markup = InlineKeyboardMarkup(keyboard)
         await query.edit_message_text(q["question"], reply_markup=reply_markup)
     else:
-        # Завершення тесту
         total = len(QUESTIONS[level])
         score = state["score"]
         percent = int(score / total * 100)
-        await query.edit_message_text(f"✅ Test finished!\nYour score: {score}/{total} ({percent}%)\n\nNow let's chat in English! 💬")
-        user_state[user_id] = {"mode": "chat"}
 
-# Обробка відповідей на тест
+        # Показуємо результат українською
+        msg = f"✅ Тест завершено!\n\nВаш результат: {score}/{total} ({percent}%)\nРівень тесту: {state['level']}\n\nРекомендуємо перейти до спілкування з AI англійською 🇬🇧"
+        keyboard = [[InlineKeyboardButton("💬 Перейти до AI", callback_data="chat")]]
+        reply_markup = InlineKeyboardMarkup(keyboard)
+        await query.edit_message_text(msg, reply_markup=reply_markup)
+
+# Відповідь на питання
 async def handle_answer(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
@@ -91,7 +90,7 @@ async def handle_answer(update: Update, context: ContextTypes.DEFAULT_TYPE):
     index = state["q_index"]
     q = QUESTIONS[level][index]
 
-    # Перевірка відповіді
+    # Перевірка
     answer_index = int(query.data.split("_")[1])
     if answer_index == q["correct"]:
         state["score"] += 1
@@ -100,13 +99,13 @@ async def handle_answer(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_state[user_id] = state
     await send_question(query, context)
 
-# Обробка повідомлень (чат з AI)
+# Чат з AI
 async def chat(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.message.from_user.id
     state = user_state.get(user_id)
 
     if not state or state.get("mode") != "chat":
-        await update.message.reply_text("⚠️ Please start a test first or select 'Chat with AI'.")
+        await update.message.reply_text("⚠️ Спочатку пройдіть тест, щоб дізнатися ваш рівень!")
         return
 
     try:
@@ -120,9 +119,9 @@ async def chat(update: Update, context: ContextTypes.DEFAULT_TYPE):
         reply = completion.choices[0].message.content
         await update.message.reply_text(reply)
     except Exception as e:
-        await update.message.reply_text(f"❌ Error with AI: {e}")
+        await update.message.reply_text(f"❌ Помилка AI: {e}")
 
-# Головна функція
+# Головна
 def main():
     app = ApplicationBuilder().token(TELEGRAM_TOKEN).build()
 
@@ -135,4 +134,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
