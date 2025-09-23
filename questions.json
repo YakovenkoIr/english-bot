@@ -1,26 +1,57 @@
 {
   "A1": [
     {
-      "question": "She ___ to school every day.",
-      "options": ["go", "goes", "going"],
-      "answer": "goes"
+      "question": "What color is the sky on a clear day?",
+      "options": ["Blue", "Dog", "Table"],
+      "answer": "Blue"
     },
     {
-      "question": "I usually drink a cup of ___ in the morning.",
-      "options": ["tea", "bread", "water"],
-      "answer": "tea"
+      "question": "Choose the correct sentence:",
+      "options": ["She is happy.", "She are happy.", "She am happy."],
+      "answer": "She is happy."
+    },
+    {
+      "question": "What is 2 + 2?",
+      "options": ["3", "4", "5"],
+      "answer": "4"
     }
   ],
-  "A2": [
+  "B2": [
     {
-      "question": "They ___ in London last year.",
-      "options": ["live", "lived", "living"],
-      "answer": "lived"
+      "question": "Which sentence uses the correct tense?",
+      "options": ["I have seen that movie yesterday.", "I saw that movie yesterday.", "I seen that movie yesterday."],
+      "answer": "I saw that movie yesterday."
     },
     {
-      "question": "Choose a synonym for 'happy':",
-      "options": ["sad", "angry", "glad"],
-      "answer": "glad"
+      "question": "Choose the correct word: He is interested ___ science.",
+      "options": ["on", "in", "at"],
+      "answer": "in"
+    },
+    {
+      "question": "Which is a synonym for 'big'?",
+      "options": ["Huge", "Small", "Tiny"],
+      "answer": "Huge"
+    }
+  ],
+  "C1": [
+    {
+      "question": "Which sentence is grammatically correct?",
+      "options": [
+        "Had I known about the traffic, I would have left earlier.",
+        "If I would have known about the traffic, I would leave earlier.",
+        "If I knew about the traffic, I would had left earlier."
+      ],
+      "answer": "Had I known about the traffic, I would have left earlier."
+    },
+    {
+      "question": "Choose the correct word: The professor’s lecture was so ___ that many students fell asleep.",
+      "options": ["boring", "bored", "bore"],
+      "answer": "boring"
+    },
+    {
+      "question": "Which word means 'to make something less severe'?",
+      "options": ["Aggravate", "Alleviate", "Exacerbate"],
+      "answer": "Alleviate"
     }
   ]
 }
