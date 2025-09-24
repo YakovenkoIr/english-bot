@@ -1,104 +1,70 @@
 {
   "A1": [
     {
-      "question": "How do you say 'привіт' in English?",
-      "options": ["Hello", "Goodbye", "Thanks", "Please"],
-      "answer": "Hello"
+      "question": "Choose the correct option: 'I ___ a student.'",
+      "options": ["is", "am", "are"],
+      "answer": "am"
     },
     {
-      "question": "What is the plural of 'cat'?",
-      "options": ["cats", "caties", "catoes", "cates"],
-      "answer": "cats"
+      "question": "What is the opposite of 'big'?",
+      "options": ["small", "tall", "short"],
+      "answer": "small"
+    },
+    {
+      "question": "Choose the correct sentence:",
+      "options": [
+        "She go to school every day.",
+        "She goes to school every day.",
+        "She going to school every day."
+      ],
+      "answer": "She goes to school every day."
     }
   ],
   "A2": [
     {
-      "question": "Choose the correct sentence:",
-      "options": [
-        "He go to school every day.",
-        "He goes to school every day.",
-        "He going to school every day.",
-        "He gone to school every day."
-      ],
-      "answer": "He goes to school every day."
+      "question": "Complete the sentence: 'I have lived in this city ___ five years.'",
+      "options": ["since", "for", "during"],
+      "answer": "for"
     },
     {
-      "question": "What is the past form of 'eat'?",
-      "options": ["eated", "ate", "eaten", "eats"],
-      "answer": "ate"
+      "question": "Choose the correct word: 'He drives ___ than me.'",
+      "options": ["careful", "more carefully", "carefully"],
+      "answer": "more carefully"
+    },
+    {
+      "question": "Which sentence is correct?",
+      "options": [
+        "I am agree with you.",
+        "I agree with you.",
+        "I agreeing with you."
+      ],
+      "answer": "I agree with you."
     }
   ],
   "B1": [
     {
-      "question": "Which word is a synonym for 'happy'?",
-      "options": ["sad", "angry", "joyful", "tired"],
-      "answer": "joyful"
+      "question": "Choose the correct form: 'If I ___ enough money, I would buy a new car.'",
+      "options": ["have", "had", "will have"],
+      "answer": "had"
     },
     {
-      "question": "Choose the correct sentence:",
+      "question": "Find the correct reported speech: She said, 'I’m tired.'",
       "options": [
-        "If I will see him, I tell him.",
-        "If I see him, I will tell him.",
-        "If I saw him, I will tell him.",
-        "If I see him, I told him."
+        "She said that she is tired.",
+        "She said that she was tired.",
+        "She said that she were tired."
       ],
-      "answer": "If I see him, I will tell him."
-    }
-  ],
-  "B2": [
-    {
-      "question": "Which is the correct passive form?",
-      "options": [
-        "The book was written by him.",
-        "The book wrote by him.",
-        "The book is write by him.",
-        "The book writing by him."
-      ],
-      "answer": "The book was written by him."
+      "answer": "She said that she was tired."
     },
     {
-      "question": "Choose the correct sentence:",
+      "question": "Which is the correct sentence?",
       "options": [
-        "I look forward to meet you.",
-        "I look forward to meeting you.",
-        "I look forward meeting you.",
-        "I looking forward to meet you."
+        "Despite of the rain, we went out.",
+        "Although the rain, we went out.",
+        "Despite the rain, we went out."
       ],
-      "answer": "I look forward to meeting you."
-    }
-  ],
-  "C1": [
-    {
-      "question": "Which sentence uses an advanced structure?",
-      "options": [
-        "Despite being tired, she finished the project.",
-        "She was tired, she finished the project.",
-        "She tired but finished the project.",
-        "She was tired finishing the project."
-      ],
-      "answer": "Despite being tired, she finished the project."
-    },
-    {
-      "question": "Which word is closest in meaning to 'ubiquitous'?",
-      "options": ["rare", "everywhere", "expensive", "difficult"],
-      "answer": "everywhere"
-    }
-  ],
-  "C2": [
-    {
-      "question": "Choose the correct academic sentence:",
-      "options": [
-        "The research has been conducted meticulously, yielding significant insights.",
-        "The research done good, and gave us some ideas.",
-        "Research was, like, very good and interesting.",
-        "The research it is conducted very good."
-      ],
-      "answer": "The research has been conducted meticulously, yielding significant insights."
-    },
-    {
-      "question": "Which word best replaces 'ameliorate'?",
-      "options": ["worsen", "improve", "destroy", "forget"],
-      "answer": "improve"
+      "answer": "Despite the rain, we went out."
     }
   ]
 }
+
