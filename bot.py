@@ -1,136 +1,111 @@
-import os
 import json
-import logging
-from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
-from telegram.ext import (
-    ApplicationBuilder, CommandHandler, CallbackQueryHandler,
-    MessageHandler, ContextTypes, filters
+import random
+from aiogram import Bot, Dispatcher, F, types
+from aiogram.types import ReplyKeyboardMarkup, KeyboardButton
+from aiogram.filters import Command
+import asyncio
+
+TOKEN = "ТУТ_ТВОЙ_ТОКЕН"
+
+bot = Bot(token=TOKEN)
+dp = Dispatcher()
+
+# Панель меню
+main_menu = ReplyKeyboardMarkup(
+    keyboard=[
+        [KeyboardButton(text="📝 Пройти тест")],
+        [KeyboardButton(text="💬 Спілкування англійською")]
+    ],
+    resize_keyboard=True
 )
-from groq import Groq
 
-# Логування
-logging.basicConfig(
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO
-)
-
-# Токени
-TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN")
-GROQ_API_KEY = os.getenv("GROQ_API_KEY")
-
-client = Groq(api_key=GROQ_API_KEY)
-
-# Завантажуємо питання
+# Завантажуємо питання з JSON
 with open("questions.json", "r", encoding="utf-8") as f:
-    QUESTIONS = json.load(f)
+    questions = json.load(f)
 
-# Стан користувачів
-user_state = {}
+# Словник для збереження даних користувачів
+user_data = {}
 
-# /start
-async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    keyboard = [[InlineKeyboardButton("📝 Пройти тест англійської", callback_data="test")]]
-    reply_markup = InlineKeyboardMarkup(keyboard)
-    await update.message.reply_text("Привіт! Спочатку перевіримо твій рівень англійської:", reply_markup=reply_markup)
+# Команда /start
+@dp.message(Command("start"))
+async def start_cmd(message: types.Message):
+    await message.answer(
+        "Привіт! 👋\nОберіть дію на панелі нижче:",
+        reply_markup=main_menu
+    )
 
-# Натискання кнопок
-async def button(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    query = update.callback_query
-    await query.answer()
+# Натискання на "Пройти тест"
+@dp.message(F.text == "📝 Пройти тест")
+async def start_test(message: types.Message):
+    user_data[message.from_user.id] = {
+        "level": None,
+        "score": 0,
+        "current_q": 0,
+        "questions": []
+    }
+    # Генеруємо по 1 питанню з кожного рівня
+    for level in questions:
+        q = random.choice(questions[level])
+        q["level"] = level
+        user_data[message.from_user.id]["questions"].append(q)
 
-    if query.data == "test":
-        levels = ["A1", "A2", "B1", "B2", "C1", "C2"]
-        keyboard = [[InlineKeyboardButton(level, callback_data=f"level_{level}")] for level in levels]
-        reply_markup = InlineKeyboardMarkup(keyboard)
-        await query.edit_message_text("Оберіть рівень тесту:", reply_markup=reply_markup)
+    await send_question(message)
 
-    elif query.data.startswith("level_"):
-        level = query.data.split("_")[1]
-        user_state[query.from_user.id] = {"mode": "test", "level": level, "q_index": 0, "score": 0}
-        await send_question(query, context)
-
-    elif query.data == "chat":
-        user_state[query.from_user.id] = {"mode": "chat"}
-        await query.edit_message_text("Тепер спілкуйся англійською з AI 🇬🇧. Напиши будь-яке повідомлення!")
-
-# Надсилання питання
-async def send_question(query, context):
-    user_id = query.from_user.id
-    state = user_state[user_id]
-    level = state["level"]
-    index = state["q_index"]
-
-    if index < len(QUESTIONS[level]):
-        q = QUESTIONS[level][index]
-        keyboard = [[InlineKeyboardButton(opt, callback_data=f"answer_{i}")] for i, opt in enumerate(q["options"])]
-        reply_markup = InlineKeyboardMarkup(keyboard)
-        await query.edit_message_text(q["question"], reply_markup=reply_markup)
-    else:
-        total = len(QUESTIONS[level])
-        score = state["score"]
-        percent = int(score / total * 100)
-
-        # Показуємо результат українською
-        msg = f"✅ Тест завершено!\n\nВаш результат: {score}/{total} ({percent}%)\nРівень тесту: {state['level']}\n\nРекомендуємо перейти до спілкування з AI англійською 🇬🇧"
-        keyboard = [[InlineKeyboardButton("💬 Перейти до AI", callback_data="chat")]]
-        reply_markup = InlineKeyboardMarkup(keyboard)
-        await query.edit_message_text(msg, reply_markup=reply_markup)
-
-# Відповідь на питання
-async def handle_answer(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    query = update.callback_query
-    await query.answer()
-
-    user_id = query.from_user.id
-    state = user_state.get(user_id)
-
-    if not state or state.get("mode") != "test":
-        return
-
-    level = state["level"]
-    index = state["q_index"]
-    q = QUESTIONS[level][index]
-
-    # Перевірка
-    answer_index = int(query.data.split("_")[1])
-    if answer_index == q["correct"]:
-        state["score"] += 1
-
-    state["q_index"] += 1
-    user_state[user_id] = state
-    await send_question(query, context)
-
-# Чат з AI
-async def chat(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    user_id = update.message.from_user.id
-    state = user_state.get(user_id)
-
-    if not state or state.get("mode") != "chat":
-        await update.message.reply_text("⚠️ Спочатку пройдіть тест, щоб дізнатися ваш рівень!")
-        return
-
-    try:
-        completion = client.chat.completions.create(
-            model="llama3-8b-8192",
-            messages=[
-                {"role": "system", "content": "You are an English teacher. Always reply in English."},
-                {"role": "user", "content": update.message.text}
-            ],
+# Функція відправки питання
+async def send_question(message):
+    data = user_data[message.from_user.id]
+    if data["current_q"] < len(data["questions"]):
+        q = data["questions"][data["current_q"]]
+        kb = ReplyKeyboardMarkup(
+            keyboard=[[KeyboardButton(text=opt)] for opt in q["options"]],
+            resize_keyboard=True
         )
-        reply = completion.choices[0].message.content
-        await update.message.reply_text(reply)
-    except Exception as e:
-        await update.message.reply_text(f"❌ Помилка AI: {e}")
+        await message.answer(q["question"], reply_markup=kb)
+    else:
+        # Обчислюємо рівень
+        levels = [q["level"] for i, q in enumerate(data["questions"]) if i < data["score"]]
+        if levels:
+            user_level = levels[-1]
+        else:
+            user_level = "A1"
+        user_data[message.from_user.id]["level"] = user_level
 
-# Головна
-def main():
-    app = ApplicationBuilder().token(TELEGRAM_TOKEN).build()
+        await message.answer(
+            f"✅ За результатами тесту ваш рівень: *{user_level}*.\n"
+            f"Тепер ви можете перейти до спілкування англійською!",
+            parse_mode="Markdown",
+            reply_markup=main_menu
+        )
 
-    app.add_handler(CommandHandler("start", start))
-    app.add_handler(CallbackQueryHandler(button, pattern="^(test|level_|chat)$"))
-    app.add_handler(CallbackQueryHandler(handle_answer, pattern="^answer_"))
-    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, chat))
+# Обробка повідомлень
+@dp.message()
+async def handle_message(message: types.Message):
+    user_id = message.from_user.id
 
-    app.run_polling()
+    # Якщо користувач відповідає на питання
+    if user_id in user_data and user_data[user_id]["current_q"] < len(user_data[user_id]["questions"]):
+        q = user_data[user_id]["questions"][user_data[user_id]["current_q"]]
+        if message.text == q["answer"]:
+            user_data[user_id]["score"] += 1
+        user_data[user_id]["current_q"] += 1
+        await send_question(message)
+
+    # Якщо обрав "Спілкування"
+    elif message.text == "💬 Спілкування англійською":
+        if user_id not in user_data or not user_data[user_id].get("level"):
+            await message.answer("❌ Спочатку пройдіть тест, щоб визначити ваш рівень.")
+        else:
+            await message.answer(
+                "Добре! Тепер спілкуємось англійською 😊\n\nНапишіть будь-що, і я відповім англійською."
+            )
+
+    # Режим спілкування
+    elif user_id in user_data and user_data[user_id].get("level"):
+        await message.answer(f"Your message in English: {message.text}")
+
+
+async def main():
+    await dp.start_polling(bot)
 
 if __name__ == "__main__":
-    main()
+    asyncio.run(main())
