@@ -1,60 +1,104 @@
 {
   "A1": [
     {
-      "question": "What is the capital of the UK?",
-      "options": ["London", "Paris", "Berlin", "Madrid"],
-      "correct": 0
+      "question": "How do you say 'привіт' in English?",
+      "options": ["Hello", "Goodbye", "Thanks", "Please"],
+      "answer": "Hello"
     },
     {
-      "question": "Choose the correct article: ___ apple",
-      "options": ["a", "an", "the", "no article"],
-      "correct": 1
+      "question": "What is the plural of 'cat'?",
+      "options": ["cats", "caties", "catoes", "cates"],
+      "answer": "cats"
     }
   ],
   "A2": [
     {
-      "question": "Which sentence is correct?",
-      "options": ["She go to school", "She goes to school", "She going school", "She goed to school"],
-      "correct": 1
+      "question": "Choose the correct sentence:",
+      "options": [
+        "He go to school every day.",
+        "He goes to school every day.",
+        "He going to school every day.",
+        "He gone to school every day."
+      ],
+      "answer": "He goes to school every day."
+    },
+    {
+      "question": "What is the past form of 'eat'?",
+      "options": ["eated", "ate", "eaten", "eats"],
+      "answer": "ate"
     }
   ],
   "B1": [
     {
-      "question": "Complete: If I ___ more time, I would learn Spanish.",
-      "options": ["have", "had", "will have", "has"],
-      "correct": 1
+      "question": "Which word is a synonym for 'happy'?",
+      "options": ["sad", "angry", "joyful", "tired"],
+      "answer": "joyful"
+    },
+    {
+      "question": "Choose the correct sentence:",
+      "options": [
+        "If I will see him, I tell him.",
+        "If I see him, I will tell him.",
+        "If I saw him, I will tell him.",
+        "If I see him, I told him."
+      ],
+      "answer": "If I see him, I will tell him."
     }
   ],
   "B2": [
     {
-      "question": "Choose the synonym of 'angry'.",
-      "options": ["furious", "happy", "calm", "excited"],
-      "correct": 0
+      "question": "Which is the correct passive form?",
+      "options": [
+        "The book was written by him.",
+        "The book wrote by him.",
+        "The book is write by him.",
+        "The book writing by him."
+      ],
+      "answer": "The book was written by him."
+    },
+    {
+      "question": "Choose the correct sentence:",
+      "options": [
+        "I look forward to meet you.",
+        "I look forward to meeting you.",
+        "I look forward meeting you.",
+        "I looking forward to meet you."
+      ],
+      "answer": "I look forward to meeting you."
     }
   ],
   "C1": [
     {
-      "question": "Select the correct usage of 'despite'.",
+      "question": "Which sentence uses an advanced structure?",
       "options": [
-        "Despite of the rain, we went out.",
-        "Despite the rain, we went out.",
-        "We went out despite it was raining.",
-        "Despite it rains, we went out."
+        "Despite being tired, she finished the project.",
+        "She was tired, she finished the project.",
+        "She tired but finished the project.",
+        "She was tired finishing the project."
       ],
-      "correct": 1
+      "answer": "Despite being tired, she finished the project."
+    },
+    {
+      "question": "Which word is closest in meaning to 'ubiquitous'?",
+      "options": ["rare", "everywhere", "expensive", "difficult"],
+      "answer": "everywhere"
     }
   ],
   "C2": [
     {
-      "question": "Which is the most formal expression?",
+      "question": "Choose the correct academic sentence:",
       "options": [
-        "Can you help me out?",
-        "Would you mind assisting me?",
-        "Give me a hand.",
-        "Lend me your help."
+        "The research has been conducted meticulously, yielding significant insights.",
+        "The research done good, and gave us some ideas.",
+        "Research was, like, very good and interesting.",
+        "The research it is conducted very good."
       ],
-      "correct": 1
+      "answer": "The research has been conducted meticulously, yielding significant insights."
+    },
+    {
+      "question": "Which word best replaces 'ameliorate'?",
+      "options": ["worsen", "improve", "destroy", "forget"],
+      "answer": "improve"
     }
   ]
 }
-
