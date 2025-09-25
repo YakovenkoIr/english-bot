@@ -1,127 +1,126 @@
 import os
 import json
 import logging
-from telegram import Update, ReplyKeyboardMarkup, KeyboardButton
-from telegram.ext import Application, CommandHandler, MessageHandler, filters, ContextTypes, ConversationHandler
+from telegram import Update, ReplyKeyboardMarkup
+from telegram.ext import Application, CommandHandler, MessageHandler, filters, ContextTypes
 from groq import Groq
 
-# Логи
+# ---------------- ЛОГІ ----------------
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Завантаження API ключів
+# ---------------- ЗМІННІ ----------------
 TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN")
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 
-client = Groq(api_key=GROQ_API_KEY)
+if not TELEGRAM_TOKEN:
+    raise SystemExit("❌ TELEGRAM_TOKEN не заданий у середовищі")
+if not GROQ_API_KEY:
+    raise SystemExit("❌ GROQ_API_KEY не заданий у середовищі")
 
-# Завантаження питань з файлу
+# Groq клієнт
+groq_client = Groq(api_key=GROQ_API_KEY)
+
+# Завантаження питань з JSON
 with open("questions.json", "r", encoding="utf-8") as f:
     QUESTIONS = json.load(f)
 
-# СТАНИ
-CHOOSING, TEST, CHAT = range(3)
+# Словник для збереження прогресу користувачів
+user_progress = {}
 
-# Словник для збереження відповідей
-user_data = {}
+# ---------------- ФУНКЦІЇ ----------------
 
 # Старт
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    keyboard = [[KeyboardButton("📝 Пройти тест")], [KeyboardButton("🤖 Спілкування з AI")]]
-    reply_markup = ReplyKeyboardMarkup(keyboard, resize_keyboard=True)
-    await update.message.reply_text("Привіт! 👋 Обери дію:", reply_markup=reply_markup)
-    return CHOOSING
+    keyboard = [["Пройти тест 📖", "Спілкуватися з AI 🤖"]]
+    markup = ReplyKeyboardMarkup(keyboard, resize_keyboard=True)
 
-# Обробка вибору
-async def choose(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    text = update.message.text
-
-    if text == "📝 Пройти тест":
-        context.user_data["level"] = "A1"  # Починаємо з A1
-        context.user_data["index"] = 0
-        context.user_data["score"] = 0
-        return await ask_question(update, context)
-
-    elif text == "🤖 Спілкування з AI":
-        await update.message.reply_text("Тепер ти можеш спілкуватися англійською з AI 🤖")
-        return CHAT
-
-# Задаємо питання
-async def ask_question(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    level = context.user_data["level"]
-    index = context.user_data["index"]
-
-    if index < len(QUESTIONS[level]):
-        q = QUESTIONS[level][index]
-        options = [[KeyboardButton(opt)] for opt in q["options"]]
-        reply_markup = ReplyKeyboardMarkup(options, resize_keyboard=True)
-        await update.message.reply_text(q["question"], reply_markup=reply_markup)
-        return TEST
-    else:
-        # Якщо питання закінчилися — показуємо результат
-        score = context.user_data["score"]
-        total = len(QUESTIONS[level])
-        result_text = f"Тест рівня {level} завершено ✅\nПравильних відповідей: {score}/{total}\n"
-
-        if score == total:
-            if level == "A1":
-                context.user_data["level"] = "A2"
-                context.user_data["index"] = 0
-                return await ask_question(update, context)
-            elif level == "A2":
-                context.user_data["level"] = "B1"
-                context.user_data["index"] = 0
-                return await ask_question(update, context)
-            else:
-                await update.message.reply_text(result_text + "\nВаш рівень — **B1** 🎉\nРекомендуємо перейти до спілкування з AI 🤖")
-        else:
-            await update.message.reply_text(result_text + f"\nВаш рівень — **{level}** 📘\nРекомендуємо перейти до спілкування з AI 🤖")
-
-        return CHOOSING
-
-# Обробка відповідей на тест
-async def handle_answer(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    level = context.user_data["level"]
-    index = context.user_data["index"]
-    q = QUESTIONS[level][index]
-
-    if update.message.text == q["answer"]:
-        context.user_data["score"] += 1
-
-    context.user_data["index"] += 1
-    return await ask_question(update, context)
-
-# AI чат
-async def chat_ai(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    user_input = update.message.text
-
-    response = client.chat.completions.create(
-        model="llama3-8b-8192",
-        messages=[
-            {"role": "system", "content": "You are an English teacher. Always reply in English."},
-            {"role": "user", "content": user_input},
-        ],
+    await update.message.reply_text(
+        "👋 Привіт! Я English Bot.\n"
+        "📖 Обери, що хочеш зробити:",
+        reply_markup=markup
     )
 
-    bot_reply = response.choices[0].message.content
-    await update.message.reply_text(bot_reply)
+# Вибір режиму
+async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    text = update.message.text
+    user_id = update.message.from_user.id
 
-# Основна функція
+    if text == "Пройти тест 📖":
+        user_progress[user_id] = {"q_index": 0, "score": 0}
+        await send_question(update, context)
+
+    elif text == "Спілкуватися з AI 🤖":
+        await update.message.reply_text("✍️ Напиши своє питання англійською, і я відповім!")
+
+    elif user_id in user_progress:
+        await check_answer(update, context, text)
+
+    else:
+        await chat_ai(update, context, text)
+
+# Надсилаємо питання з тесту
+async def send_question(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user_id = update.message.from_user.id
+    progress = user_progress[user_id]
+    q_index = progress["q_index"]
+
+    if q_index < len(QUESTIONS):
+        q = QUESTIONS[q_index]
+        keyboard = [[opt] for opt in q["options"]]
+        markup = ReplyKeyboardMarkup(keyboard, resize_keyboard=True)
+        await update.message.reply_text(q["question"], reply_markup=markup)
+    else:
+        score = progress["score"]
+        level = "A1 (початковий)"
+        if score >= 4:
+            level = "B1 (середній)"
+        elif score >= 7:
+            level = "B2 (вище середнього)"
+
+        await update.message.reply_text(
+            f"✅ Тест завершено!\nТвій рівень: {level}\n\nТепер можеш перейти у режим AI 🤖 та практикувати англійську."
+        )
+        del user_progress[user_id]
+
+# Перевірка відповіді
+async def check_answer(update: Update, context: ContextTypes.DEFAULT_TYPE, user_answer: str):
+    user_id = update.message.from_user.id
+    progress = user_progress[user_id]
+    q_index = progress["q_index"]
+
+    if q_index < len(QUESTIONS):
+        correct = QUESTIONS[q_index]["answer"]
+        if user_answer == correct:
+            progress["score"] += 1
+
+        progress["q_index"] += 1
+        await send_question(update, context)
+
+# Chat з Groq AI
+async def chat_ai(update: Update, context: ContextTypes.DEFAULT_TYPE, user_text: str):
+    try:
+        response = groq_client.chat.completions.create(
+            model="llama-3.1-8b-instant",
+            messages=[
+                {"role": "system", "content": "You are an English teacher. Always reply in English, short and clear."},
+                {"role": "user", "content": user_text}
+            ]
+        )
+        answer = response.choices[0].message.content
+        await update.message.reply_text(answer)
+    except Exception as e:
+        logger.error(f"AI error: {e}")
+        await update.message.reply_text("⚠️ Сталася помилка зі ШІ.")
+
+# ---------------- ЗАПУСК ----------------
 def main():
     app = Application.builder().token(TELEGRAM_TOKEN).build()
 
-    conv_handler = ConversationHandler(
-        entry_points=[CommandHandler("start", start)],
-        states={
-            CHOOSING: [MessageHandler(filters.TEXT & ~filters.COMMAND, choose)],
-            TEST: [MessageHandler(filters.TEXT & ~filters.COMMAND, handle_answer)],
-            CHAT: [MessageHandler(filters.TEXT & ~filters.COMMAND, chat_ai)],
-        },
-        fallbacks=[CommandHandler("start", start)],
-    )
+    app.add_handler(CommandHandler("start", start))
+    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
 
-    app.add_handler(conv_handler)
-    logger.info("Bot started")
+    logger.info("✅ Bot is running...")
     app.run_polling()
 
 if __name__ == "__main__":
