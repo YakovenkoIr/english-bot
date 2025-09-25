@@ -1,17 +1,27 @@
 [
   {
-    "question": "What is the plural of 'book'?",
-    "options": ["books", "bookes", "boox"],
-    "answer": "books"
+    "question": "Виберіть правильний переклад: 'Cat'",
+    "options": ["Кіт", "Собака", "Миша"],
+    "answer": "Кіт"
   },
   {
-    "question": "Choose the correct sentence:",
-    "options": ["He go to school.", "He goes to school.", "He going to school."],
-    "answer": "He goes to school."
+    "question": "Яке слово зайве? (apple, orange, table, banana)",
+    "options": ["apple", "orange", "table", "banana"],
+    "answer": "table"
   },
   {
-    "question": "Translate: 'Кіт' in English",
-    "options": ["dog", "cat", "cow"],
-    "answer": "cat"
+    "question": "Доповніть речення: I ___ a student.",
+    "options": ["am", "is", "are"],
+    "answer": "am"
+  },
+  {
+    "question": "Який час використано у реченні: 'She is reading a book now'?",
+    "options": ["Present Simple", "Present Continuous", "Past Simple"],
+    "answer": "Present Continuous"
+  },
+  {
+    "question": "Який артикль потрібен: ___ apple",
+    "options": ["a", "an", "the"],
+    "answer": "an"
   }
 ]
