@@ -1,127 +1,134 @@
-import os
 import json
 import logging
-from telegram import Update, ReplyKeyboardMarkup
-from telegram.ext import Application, CommandHandler, MessageHandler, filters, ContextTypes
-from groq import Groq
+from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
+from telegram.ext import (
+    Application, CommandHandler, CallbackQueryHandler,
+    MessageHandler, ContextTypes, filters
+)
+import os
+import openai
 
-# ---------------- ЛОГІ ----------------
-logging.basicConfig(level=logging.INFO)
+# ----------------------------
+# Logging
+# ----------------------------
+logging.basicConfig(
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO
+)
 logger = logging.getLogger(__name__)
 
-# ---------------- ЗМІННІ ----------------
+# ----------------------------
+# API KEYS (заміни своїми!)
+# ----------------------------
 TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN")
-GROQ_API_KEY = os.getenv("GROQ_API_KEY")
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
-if not TELEGRAM_TOKEN:
-    raise SystemExit("❌ TELEGRAM_TOKEN не заданий у середовищі")
-if not GROQ_API_KEY:
-    raise SystemExit("❌ GROQ_API_KEY не заданий у середовищі")
+openai.api_key = OPENAI_API_KEY
 
-# Groq клієнт
-groq_client = Groq(api_key=GROQ_API_KEY)
-
-# Завантаження питань з JSON
+# ----------------------------
+# Завантажуємо питання з JSON
+# ----------------------------
 with open("questions.json", "r", encoding="utf-8") as f:
     QUESTIONS = json.load(f)
 
-# Словник для збереження прогресу користувачів
-user_progress = {}
-
-# ---------------- ФУНКЦІЇ ----------------
-
-# Старт
+# ----------------------------
+# СТАРТОВЕ МЕНЮ
+# ----------------------------
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    keyboard = [["Пройти тест 📖", "Спілкуватися з AI 🤖"]]
-    markup = ReplyKeyboardMarkup(keyboard, resize_keyboard=True)
+    keyboard = [
+        [InlineKeyboardButton("📝 Пройти тест", callback_data="start_test")],
+        [InlineKeyboardButton("🤖 Почати спілкування з AI", callback_data="start_ai")]
+    ]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    await update.message.reply_text("Привіт! Оберіть дію:", reply_markup=reply_markup)
 
-    await update.message.reply_text(
-        "👋 Привіт! Я English Bot.\n"
-        "📖 Обери, що хочеш зробити:",
-        reply_markup=markup
-    )
+# ----------------------------
+# ОБРОБКА КНОПОК
+# ----------------------------
+async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    query = update.callback_query
+    await query.answer()
 
-# Вибір режиму
-async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    text = update.message.text
-    user_id = update.message.from_user.id
+    if query.data == "start_test":
+        context.user_data["score"] = 0
+        context.user_data["q_index"] = 0
+        await ask_question(query, context)
 
-    if text == "Пройти тест 📖":
-        user_progress[user_id] = {"q_index": 0, "score": 0}
-        await send_question(update, context)
+    elif query.data == "start_ai":
+        await query.message.reply_text("✍️ Тепер пишіть англійською, я буду відповідати.")
 
-    elif text == "Спілкуватися з AI 🤖":
-        await update.message.reply_text("✍️ Напиши своє питання англійською, і я відповім!")
-
-    elif user_id in user_progress:
-        await check_answer(update, context, text)
-
-    else:
-        await chat_ai(update, context, text)
-
-# Надсилаємо питання з тесту
-async def send_question(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    user_id = update.message.from_user.id
-    progress = user_progress[user_id]
-    q_index = progress["q_index"]
+# ----------------------------
+# ТЕСТ
+# ----------------------------
+async def ask_question(update_or_query, context: ContextTypes.DEFAULT_TYPE):
+    q_index = context.user_data.get("q_index", 0)
 
     if q_index < len(QUESTIONS):
         q = QUESTIONS[q_index]
-        keyboard = [[opt] for opt in q["options"]]
-        markup = ReplyKeyboardMarkup(keyboard, resize_keyboard=True)
-        await update.message.reply_text(q["question"], reply_markup=markup)
+        keyboard = [[InlineKeyboardButton(opt, callback_data=f"answer:{opt}")]
+                    for opt in q["options"]]
+        reply_markup = InlineKeyboardMarkup(keyboard)
+
+        if hasattr(update_or_query, "message"):
+            await update_or_query.message.reply_text(q["question"], reply_markup=reply_markup)
+        else:
+            await update_or_query.message.reply_text(q["question"], reply_markup=reply_markup)
     else:
-        score = progress["score"]
-        level = "A1 (початковий)"
-        if score >= 4:
-            level = "B1 (середній)"
-        elif score >= 7:
-            level = "B2 (вище середнього)"
-
-        await update.message.reply_text(
-            f"✅ Тест завершено!\nТвій рівень: {level}\n\nТепер можеш перейти у режим AI 🤖 та практикувати англійську."
+        score = context.user_data["score"]
+        level = "A1 (початковий)" if score <= 2 else "A2 (базовий)" if score <= 4 else "B1 (середній)"
+        await update_or_query.message.reply_text(
+            f"✅ Тест завершено!\nВаш рівень: {level}\n\n"
+            "Раджу продовжити у спілкуванні з AI 👉 натисніть /start та виберіть AI."
         )
-        del user_progress[user_id]
 
-# Перевірка відповіді
-async def check_answer(update: Update, context: ContextTypes.DEFAULT_TYPE, user_answer: str):
-    user_id = update.message.from_user.id
-    progress = user_progress[user_id]
-    q_index = progress["q_index"]
+async def answer_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    query = update.callback_query
+    await query.answer()
 
-    if q_index < len(QUESTIONS):
+    if query.data.startswith("answer:"):
+        selected = query.data.split(":")[1]
+        q_index = context.user_data.get("q_index", 0)
         correct = QUESTIONS[q_index]["answer"]
-        if user_answer == correct:
-            progress["score"] += 1
 
-        progress["q_index"] += 1
-        await send_question(update, context)
+        if selected == correct:
+            context.user_data["score"] += 1
 
-# Chat з Groq AI
-async def chat_ai(update: Update, context: ContextTypes.DEFAULT_TYPE, user_text: str):
+        context.user_data["q_index"] = q_index + 1
+        await ask_question(query, context)
+
+# ----------------------------
+# AI CHAT
+# ----------------------------
+async def chat_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user_text = update.message.text
+
     try:
-        response = groq_client.chat.completions.create(
-            model="llama-3.1-8b-instant",
+        response = openai.ChatCompletion.create(
+            model="gpt-3.5-turbo",  # або groq-mixtral
             messages=[
-                {"role": "system", "content": "You are an English teacher. Always reply in English, short and clear."},
+                {"role": "system", "content": "You are a friendly English tutor."},
                 {"role": "user", "content": user_text}
             ]
         )
-        answer = response.choices[0].message.content
-        await update.message.reply_text(answer)
-    except Exception as e:
-        logger.error(f"AI error: {e}")
-        await update.message.reply_text("⚠️ Сталася помилка зі ШІ.")
+        reply_text = response["choices"][0]["message"]["content"]
+        await update.message.reply_text(reply_text)
 
-# ---------------- ЗАПУСК ----------------
+    except Exception as e:
+        logger.error(f"OpenAI error: {e}")
+        await update.message.reply_text("⚠️ Помилка при спілкуванні з AI.")
+
+# ----------------------------
+# MAIN
+# ----------------------------
 def main():
     app = Application.builder().token(TELEGRAM_TOKEN).build()
 
     app.add_handler(CommandHandler("start", start))
-    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
+    app.add_handler(CallbackQueryHandler(button_handler, pattern="^(start_test|start_ai)$"))
+    app.add_handler(CallbackQueryHandler(answer_handler, pattern="^answer:"))
+    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, chat_handler))
 
-    logger.info("✅ Bot is running...")
     app.run_polling()
 
 if __name__ == "__main__":
     main()
+
